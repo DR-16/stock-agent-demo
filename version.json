@@ -1,0 +1,8 @@
+{
+ "version": "P01",
+ "built_at": "2026-10-25T21:54:13Z",
+ "source_commit": "9cf33eb9cac90ea365a2ca7ca43872f5483b9958",
+ "source_dirty": false,
+ "bundle_sha256": "953e6cc440350e40e2d093df1dc0204237668b4b67a398a08430ddf916d3b4b8",
+ "pyodide": "314.0.7"
+}

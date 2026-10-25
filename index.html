@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; worker-src 'self'; connect-src 'self'; img-src 'self' data:; style-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>股票研究工作台 · 演示预览</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand">股票研究工作台 <span class="tag">演示预览</span></div>
+  <div class="ver" id="ver">版本加载中…</div>
+</header>
+<div class="banner" role="note">
+  <strong>演示数据，非真实公司最新分析。</strong>
+  下面的公司、价格、财报和公告全部是为演示编写的合成数据。分析由五个专家在<strong>你自己的浏览器里</strong>真实运行，不连网取数，也不是投资建议。
+</div>
+<main>
+  <section class="card" id="step-input">
+    <h2>1. 输入公司名称或代码</h2>
+    <p class="hint">本演示只支持下面列出的两家合成公司和两个演示场景，不支持任意股票。</p>
+    <form id="search-form" autocomplete="off">
+      <input id="q" maxlength="40" placeholder="例如 Orchard 或 SYNDEMO2" aria-label="公司名称或代码">
+      <button type="submit">查找</button>
+    </form>
+    <div id="matches" class="list"></div>
+    <details class="supported"><summary>支持范围</summary><ul id="supported"></ul></details>
+  </section>
+
+  <section class="card hidden" id="step-confirm">
+    <h2>2. 确认公司</h2>
+    <div id="confirm-box"></div>
+    <div class="row">
+      <button id="btn-analyze">分析</button>
+      <button id="btn-back" class="secondary">换一家</button>
+    </div>
+  </section>
+
+  <section class="card hidden" id="step-run">
+    <h2>3. 分析中</h2>
+    <ol id="progress" class="progress"></ol>
+    <p class="hint" id="run-hint"></p>
+    <button id="btn-cancel" class="secondary">取消</button>
+  </section>
+
+  <section class="card hidden" id="step-error">
+    <h2>没有完成</h2>
+    <p id="error-text"></p>
+    <button id="btn-error-back" class="secondary">返回</button>
+  </section>
+
+  <section class="card hidden" id="step-result">
+    <h2>4. 结果</h2>
+    <div id="result"></div>
+  </section>
+
+  <section class="card" id="history-box">
+    <h2>历史（只存在这个浏览器里）</h2>
+    <p class="hint">最多保留 <span id="hist-max"></span> 条，超出时自动删除最早的；每条打开时都会重新校验内容。</p>
+    <div id="history" class="list"></div>
+    <button id="btn-clear" class="secondary">清空历史</button>
+  </section>
+
+  <section class="card about">
+    <h2>说明</h2>
+    <ul>
+      <li>五个专家：技术面、宏观（生产在用的规则模型，原样调用）；基本面、估值、公告（实验版本，生产中未激活）。</li>
+      <li>所有结论都是对合成数据的描述性读法，每条都可以展开看证据和数据日期。没有经过金融验证，不提供买卖信号。</li>
+      <li>公告事件是规则从原文抽取的线索；系统不能确定的会放在“需要核实”，不当作确定事实。</li>
+      <li>首次分析需要下载运行环境（约 21 MB），之后浏览器会缓存。</li>
+      <li>真实公司分析只在开发者本人的受控环境里运行，不在这个网站上。</li>
+    </ul>
+  </section>
+</main>
+<footer class="foot" id="foot"></footer>
+<script src="app.js" type="module"></script>
+</body>
+</html>

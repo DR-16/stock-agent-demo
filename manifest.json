@@ -1,0 +1,49 @@
+{
+ "schema": "Q12_DEMO_MANIFEST_V1",
+ "version": "P01",
+ "built_at": "2026-10-25T21:54:13Z",
+ "source_commit": "9cf33eb9cac90ea365a2ca7ca43872f5483b9958",
+ "source_dirty": false,
+ "bundle": "bundle-953e6cc44035.zip",
+ "bundle_sha256": "953e6cc440350e40e2d093df1dc0204237668b4b67a398a08430ddf916d3b4b8",
+ "bundle_files": 86,
+ "pyodide": "314.0.7",
+ "python": "3.14.2",
+ "cases": [
+  {
+   "case_id": "Q8-ORCHARD",
+   "kind": "COMPANY",
+   "title": "Orchard Synthetic Industrial Co.",
+   "code": "SYNDEMO2",
+   "note": "完整的五专家演示案例"
+  },
+  {
+   "case_id": "Q8-LANTERN",
+   "kind": "COMPANY",
+   "title": "Lantern Synthetic Software Inc.",
+   "code": "SYNDEMO1",
+   "note": "第二家合成公司:亏损;价格序列比截止日早 11 天"
+  },
+  {
+   "case_id": "Q8-ORCHARD-MISSING-DATA",
+   "kind": "SCENARIO",
+   "title": "场景:资料缺失",
+   "code": "SYNDEMO2",
+   "note": "财报缺身份、估值缺币种、公告缺可得时间——看系统怎样拒绝而不是猜"
+  },
+  {
+   "case_id": "Q8-ORCHARD-IDENTITY-CONFLICT",
+   "kind": "SCENARIO",
+   "title": "场景:混入别家公司的资料",
+   "code": "SYNDEMO2",
+   "note": "财报和公告混入 Lantern 的资料——看系统怎样阻断"
+  }
+ ],
+ "as_of": {
+  "Q8-ORCHARD": "2026-10-19",
+  "Q8-LANTERN": "2026-10-19",
+  "Q8-ORCHARD-MISSING-DATA": "2026-10-19",
+  "Q8-ORCHARD-IDENTITY-CONFLICT": "2026-10-19"
+ },
+ "data": "synthetic only"
+}
