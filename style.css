@@ -267,7 +267,8 @@ details.more > summary { cursor: pointer; color: var(--accent); font-weight: 600
   body[data-view="report"] #view-home { display: none !important; }
   body:not([data-view="report"]) #view-report { display: none !important; }
   .res-grid { display: block; }
-  details.ev > .evbox, details.more > * { display: block; }
+  /* Q13 re-review U-5: the rule that set display:block inside a closed <details> was dropped - a closed <details> is not printed whatever its
+     CSS (Chromium 153 PDF check); app.js opens them on 'beforeprint' and closes them again on 'afterprint' */
   .report { max-width: none; padding: 0; }
   .report h2 { break-after: avoid; }
   .report ol.ritems > li, .report .rex, .it, .ex { break-inside: avoid; }

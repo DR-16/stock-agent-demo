@@ -75,8 +75,7 @@ function setStep(s) {
 function go(hash) { if (location.hash === hash || (hash === "" && !location.hash)) route(); else location.hash = hash; }
 function newAnalysis() {                                    // review M5: during a run the run panel stays; nothing is cleared
   if (!BUSY) { CHOSEN = null; setStep("choose"); }
-  go("");
-  focusStep(BUSY ? "run-title" : "choose-title");
+  go("");                                                   // Q13 re-review U-1: route() moves the focus once the start view is shown
 }
 
 // ---------------------------------------------------------------- choose and confirm
@@ -159,7 +158,7 @@ function stopWorker() {
   if (TIMER) { clearTimeout(TIMER); TIMER = null; }
   if (TICK) { clearInterval(TICK); TICK = null; }
 }
-function release() { BUSY = false; RUN = null; $("btn-analyze").disabled = false; lockHistory(false); }
+function release() { BUSY = false; RUN = null; $("btn-analyze").disabled = false; $("btn-cancel").disabled = false; lockHistory(false); }   // Q13 re-review U-8: cancel enabled again
 function arm(ms, kind) {                                    // review MINOR 16: a hidden (suspended) tab does not run out its time
   if (TIMER) clearTimeout(TIMER);
   const run = RUN;
@@ -190,9 +189,10 @@ function fail(kind, extra) {
   setView("start"); setStep("error"); focusStep("error-title");
 }
 
-function analyze() {
+function analyze(e) {
   if (BUSY || !CHOSEN) return;                        // one analysis at a time in this page; a second click does nothing
-  if (performance.now() - STEP_AT < 400) return;      // review M4: the click that opened the confirm step does not start the run
+  if (e && e.detail > 1) return;                      // Q13 re-review U-4: the 2nd click of a double click is not a decision
+  if (performance.now() - STEP_AT < 600) return;      // review M4 (Q13 re-review U-4: 600 ms): the click that opened the confirm step does not start the run
   BUSY = true; $("btn-analyze").disabled = true; lockHistory(true);
   $("confirm-note").textContent = "";
   RUN = { t0: performance.now(), stage: 0, at: [], net: null, caseId: CHOSEN.case_id };
@@ -201,7 +201,11 @@ function analyze() {
   try { WORKER = new Worker("worker.js", { type: "module" }); } catch { return fail("START"); }
   arm(TIMEOUT_MS.load, "TIMEOUT_LOAD");
   TICK = setInterval(tick, 500);
-  WORKER.onerror = (e) => { if (e && e.preventDefault) e.preventDefault(); fail("START"); };
+  WORKER.onerror = (e) => {                           // Q13 re-review U-6: classified by the stage reached, like the worker's own error messages
+    if (e && e.preventDefault) e.preventDefault();
+    const st = RUN ? RUN.stage : 0;
+    fail(!st ? "START" : st <= 3 ? "NETWORK" : "RUNTIME", st ? `第 ${st} 步` : "");
+  };
   WORKER.onmessage = (ev) => onWorker(ev.data);
   WORKER.postMessage({ caseId: CHOSEN.case_id, bundle: MANIFEST.bundle, bundleSha256: MANIFEST.bundle_sha256 });
 }
@@ -215,6 +219,7 @@ async function onWorker(m) {
   if (m.net) run.net = m.net;
   if (WORKER) { WORKER.onmessage = null; WORKER.onerror = null; WORKER.terminate(); WORKER = null; }
   setStage(5);
+  $("btn-cancel").disabled = true;                    // Q13 re-review U-8: the save stage is not cancelled half-way (release() enables it again)
   let r; try { r = JSON.parse(m.out); } catch { return fail("RESULT"); }
   if (!r || !r.view || !r.view.ok) return fail("RESULT", (r && r.view && r.view.error) || (r && r.error) || "");
   const okHash = typeof r.record_text === "string" && (await sha256Text(r.record_text)) === r.view.record_sha256;
@@ -226,7 +231,15 @@ async function onWorker(m) {
   if (RUN !== run) return;
   const save = await histSave({ run_id: r.view.run_id, case_id: r.view.case_id, title: r.view.case.title, kind: r.view.case.kind,
                                 saved_at: new Date().toISOString(), payload, payload_sha256: ph });
-  if (RUN !== run) return;                            // cancelled during the save: the entry may exist, the page does not jump
+  if (RUN !== run) {                                  // cancelled (or timed out) during the save: the page does not jump
+    if (save.saved) {                                 // Q13 re-review U-8: the entry was committed - the history shows it and the page says so
+      await renderHistory();
+      const said = "结果在停止前已经保存到历史，可以在下面的历史里打开。";
+      if (!$("step-confirm").hidden && /没有保存/.test($("confirm-note").textContent)) $("confirm-note").textContent = "已取消，但" + said;
+      if (!$("step-error").hidden && /没有保存/.test($("error-text").textContent)) $("error-text").textContent = `${$("error-title").textContent}，但${said}`;
+    }
+    return;
+  }
   stopWorker();
   run.at[4].end = performance.now();
   const load = { stages: STAGES.map(([n], i) => ({ name: n, seconds: run.at[i] && run.at[i].end ? (run.at[i].end - run.at[i].start) / 1000 : null })),
@@ -267,8 +280,8 @@ function storageWhy(e) {
   const n = e && e.name;
   if (n === "QuotaExceededError") return "浏览器给本站的存储空间不够";
   if (n === "TimeoutError") return "浏览器的存储没有响应";
-  if (n === "SecurityError" || n === "InvalidStateError" || n === "NotAllowedError" || n === "UnknownError" || !window.indexedDB) return "浏览器不允许本站保存数据（例如无痕模式，或者关闭了网站数据）";
-  return "浏览器存储出错";
+  if (n === "SecurityError" || n === "InvalidStateError" || !window.indexedDB) return "浏览器不允许本站保存数据（例如无痕模式，或者关闭了网站数据）";
+  return "浏览器存储出错（可能是空间不足或浏览器限制）";   // Q13 re-review U-7: UnknownError and any other name - not called private mode
 }
 async function histList() { try { return { ok: true, items: (await tx("readonly", (s) => s.getAll())) || [] }; } catch (e) { return { ok: false, error: e }; } }
 async function histSave(entry) {
@@ -331,6 +344,7 @@ async function renderHistory() {
     }
   }
   if (gen !== HIST_GEN) return;
+  if (L.ok) $("hist-msg").textContent = "";                  // Q13 re-review U-2: an old failure message does not outlive a list that renders
   const box = $("history"); box.textContent = ""; box.append(frag);
   $("hist-count").textContent = count; $("btn-clear").hidden = !clear; $("clear-confirm").hidden = true; $("clear-n").textContent = count ? count.split(" ")[0] : "";
   lockHistory(BUSY);
@@ -338,19 +352,23 @@ async function renderHistory() {
 function markUnsaved(why) {                                  // review MINOR 3: the page stops claiming the run is saved
   if (!CURRENT) return;
   CURRENT.save = { saved: false, why }; CURRENT.fromHistory = false;
-  if (document.body.dataset.view === "result" && /^#run\//.test(location.hash)) renderResultSafe(CURRENT);
+  const m = /^#run\/(.+)$/.exec(location.hash);              // Q13 re-review U-3: re-render only when the page shows this very record
+  let id = null; try { id = m ? decodeURIComponent(m[1]) : null; } catch { id = null; }
+  if (document.body.dataset.view === "result" && id === CURRENT.view.run_id) renderResultSafe(CURRENT);
 }
 async function delOne(id) {
-  if (HIST_BUSY) return;                                     // review M3: a double click deletes one record only
+  if (HIST_BUSY) return false;                               // review M3: a double click deletes one record only
   HIST_BUSY = true; lockHistory(BUSY);
+  $("hist-msg").textContent = "";                            // Q13 re-review U-2
   let err = null;
   try { await tx("readwrite", (s) => s.delete(id)); } catch (e) { err = e; }
   HIST_BUSY = false; LAST_DEL = performance.now();
   await renderHistory();
   LAST_DEL = performance.now();
-  if (err) { $("hist-msg").textContent = `删除失败：${storageWhy(err)}。`; return; }
+  if (err) { $("hist-msg").textContent = `删除失败：${storageWhy(err)}。`; focusTo($("hist-title"), "nearest"); return false; }   // Q13 re-review U-1: focus stays on a visible element
   if (CURRENT && CURRENT.view.run_id === id) markUnsaved("这条记录已从历史中删除");
   focusTo($("hist-title"), "nearest");
+  return true;                                               // Q13 re-review U-2: the caller acts on the result, not on the message
 }
 
 // ---------------------------------------------------------------- result
@@ -504,6 +522,7 @@ function showMessage(title, text, extra) {
   box.append(el("div", { class: "msg-box" }, el("h1", { id: "res-title" }, title), el("p", {}, text),
     el("div", { class: "row" }, extra || null, el("button", { type: "button", class: "btn", onclick: newAnalysis }, "回到首页"))));
   setView("result"); focusTo($("res-title"));
+  document.title = `${title} · 股票研究工作台`;               // Q13 re-review U-3: the tab names the message, not the record shown before
 }
 
 // ---------------------------------------------------------------- full report (page, print, download)
@@ -543,7 +562,8 @@ function buildReport(d) {
     part("没有算的项目", b.gaps, "没有列出的缺口。", "缺的数据不按零或中性处理；没有算不等于没有风险。"),
     el("h2", {}, "专家之间的对照"),
     c ? [el("p", { class: "kicker" }, "综合层按固定规则做的对照：只列出和归类，不打分，不判断哪一方对。"),
-      c.sections.map((s) => [el("h3", {}, `${s.title}：${s.count} 条`), s.count ? el("ul", { class: "plain" }, s.items.map((t) => el("li", {}, t))) : null]),
+      c.sections.map((s) => [el("h3", {}, `${s.title}：${s.count} 条`), s.count ? el("ul", { class: "plain" }, s.items.map((t) => el("li", {}, t))) : null,
+        s.count > s.items.length ? el("p", { class: "kicker" }, `只列出前 ${s.items.length} 条（共 ${s.count} 条）；全部在同一运行编号的完整记录（JSON）里。`) : null]),   // Q13 re-review U-9
       c.not_compared.length ? [el("h3", {}, `没有比较的规则（${c.not_compared.length} 条；不能读作“没有矛盾”）`), el("ul", { class: "plain" }, c.not_compared.map((t) => el("li", {}, t)))] : null]
       : el("p", {}, "这条记录由旧版本保存，没有对照信息。"),
     el("h2", {}, "限制"), el("ul", { class: "plain" }, (b.limits || []).map((t) => el("li", {}, t))),
@@ -580,7 +600,15 @@ async function route() {
   if (location.hash === "#main") return;                     // review M1: the skip link is not a route
   const gen = ++ROUTE_GEN;                                   // review MINOR 2: only the newest route may render
   const m = /^#(run|report)\/(.+)$/.exec(location.hash);
-  if (!m) { setView("start"); if (BUSY) setStep("run"); else if ($("step-error").hidden && $("step-confirm").hidden) setStep("choose"); return; }
+  if (!m) {
+    const from = document.body.dataset.view;
+    setView("start"); if (BUSY) setStep("run"); else if ($("step-error").hidden && $("step-confirm").hidden) setStep("choose");
+    if (from !== "start") {                                  // Q13 re-review U-1: back from a result / report: focus the visible step heading, now that it is shown
+      const s = ["choose", "confirm", "run", "error"].find((x) => !$("step-" + x).hidden);
+      if (s) focusStep(s + "-title");
+    }
+    return;
+  }
   let id; try { id = decodeURIComponent(m[2]); } catch { id = ""; }
   if (!RUN_ID_RX.test(id)) return showMessage("地址里的运行编号格式不对", "请从历史列表打开一条记录，或者开始新的分析。");   // review MINOR 15
   let d = CURRENT && CURRENT.view.run_id === id ? CURRENT : null;
@@ -593,7 +621,7 @@ async function route() {
     const x = await checkEntry(h);
     if (gen !== ROUTE_GEN) return;
     if (!x) return showMessage("这条记录已损坏", "它的内容和保存时的校验值不一致（可能被改动，或者存储出错），所以不显示。可以删除它。",
-      el("button", { type: "button", class: "btn danger", onclick: async () => { await delOne(id); if (!$("hist-msg").textContent) newAnalysis(); } }, "删除这条记录"));
+      el("button", { type: "button", class: "btn danger", onclick: async () => { if (await delOne(id)) newAnalysis(); } }, "删除这条记录"));   // Q13 re-review U-2
     if (CURRENT && !CURRENT.fromHistory && CURRENT.save && !CURRENT.save.saved) { /* an unsaved fresh run is not silently replaced: it stays reachable by Back */ }
     d = CURRENT = { view: x.view, recordText: x.record_text, site: x.site || null, fromHistory: true, save: null, load: null };
   }
@@ -615,6 +643,14 @@ async function start() {
     if (!BUSY) renderHistory();                                    // another tab may have changed the history
   });
   document.querySelector(".skip").addEventListener("click", (e) => { e.preventDefault(); focusTo($("main")); });   // review M1
+  // Q13 re-review U-5: a closed <details> is not rendered in print whatever its CSS, so the evidence of the shown result is opened for printing
+  // and closed again afterwards (only the ones this opened)
+  let printOpened = [];
+  window.addEventListener("beforeprint", () => {
+    printOpened = $("result-view").hidden ? [] : [...$("result-view").querySelectorAll("details:not([open])")];
+    for (const d of printOpened) d.open = true;
+  });
+  window.addEventListener("afterprint", () => { for (const d of printOpened) d.open = false; printOpened = []; });
   $("search-form").addEventListener("submit", (e) => { e.preventDefault(); if (!MANIFEST) return; renderCases($("q").value); const ms = caseMatches($("q").value); if ($("q").value.trim() && ms.length === 1) choose(ms[0]); });
   $("q").addEventListener("input", (e) => { if (!MANIFEST || e.isComposing) return; renderCases($("q").value); });   // review MINOR 5: not during IME composition
   $("q").addEventListener("compositionend", () => { if (MANIFEST) renderCases($("q").value); });
@@ -628,11 +664,12 @@ async function start() {
   $("btn-clear-yes").addEventListener("click", async () => {
     if (BUSY || HIST_BUSY) return;
     HIST_BUSY = true; lockHistory(BUSY);
+    $("hist-msg").textContent = "";                                                          // Q13 re-review U-2
     let err = null;
     try { await tx("readwrite", (s) => s.clear()); } catch (e) { err = e; }
     HIST_BUSY = false;
     await renderHistory();
-    if (err) { $("hist-msg").textContent = `清空失败：${storageWhy(err)}。`; return; }       // review MINOR 3: a failed clear marks nothing
+    if (err) { $("hist-msg").textContent = `清空失败：${storageWhy(err)}。`; focusTo($("hist-title"), "nearest"); return; }   // review MINOR 3: a failed clear marks nothing (Q13 re-review U-1: focus kept visible)
     if (CURRENT) markUnsaved("历史已清空");
     focusTo($("hist-title"), "nearest");
   });
