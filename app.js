@@ -155,6 +155,7 @@ function renderResult(v, recordText, fromHistory) {
   }
   box.append(el("h3", {}, "五个专家"), t,
     section("事实（带证据）", b.facts, "没有可以列出的事实。"),
+    section("公告线索（规则从 8-K 原文抽取，未经人工核实）", b.leads || [], "没有公告线索。"),
     section("读数（描述值，不判断好坏）", b.readings, "没有读数。"),
     section("需要核实", b.needs_check, "没有需要核实的条目。"),
     section("没有算的项目和原因", b.gaps, "没有缺口。"),
