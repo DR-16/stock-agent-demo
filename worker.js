@@ -17,6 +17,14 @@ function net() {
 let cur = 0;                                          // the stage in progress: an error is classified by where it happened (review M6)
 const stage = (n) => { cur = n; post({ type: "stage", n }); post(net()); };
 
+// Q13 (browser long run): when the runtime's .wasm file fails (a non-OK response) or arrives incomplete, Pyodide only logs
+// "wasm instantiation failed!" and never settles, so the page waited for its 4-minute load timeout. That warning now fails the load at once.
+// A download that stalls without an error still ends only at the page's load timeout. scripts/check_release.py checks the text is still there.
+let wasmFailed = () => {};
+const wasmFail = new Promise((_, bad) => { wasmFailed = bad; });
+const warn = console.warn.bind(console);
+console.warn = (...a) => { if (typeof a[0] === "string" && a[0].includes("wasm instantiation failed")) wasmFailed(new Error("WASM")); warn(...a); };
+
 async function sha256Hex(buf) {
   const d = await crypto.subtle.digest("SHA-256", buf);
   return [...new Uint8Array(d)].map((b) => b.toString(16).padStart(2, "0")).join("");
@@ -28,7 +36,7 @@ self.onmessage = async (ev) => {
   const ticker = setInterval(() => post(net()), 400);
   try {
     stage(1);
-    const py = await loadPyodide({ indexURL: new URL("./pyodide/", import.meta.url).href });
+    const py = await Promise.race([loadPyodide({ indexURL: new URL("./pyodide/", import.meta.url).href }), wasmFail]);
     stage(2);
     const pkgErrors = [];
     await py.loadPackage(["numpy", "pandas"], { messageCallback: () => {}, errorCallback: (m) => pkgErrors.push(String(m)) });
