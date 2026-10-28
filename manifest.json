@@ -1,45 +1,76 @@
 {
  "schema": "Q12_DEMO_MANIFEST_V1",
- "version": "P03.2",
- "built_at": "2026-10-26T05:28:25Z",
- "source_commit": "353fe6075893dd03dd10c07b6177fbac164e2fb0",
+ "version": "P04",
+ "built_at": "2026-10-28T07:30:51Z",
+ "source_commit": "31d90a44a222c7a6fa667b466bd8656376631d50",
  "source_dirty": false,
- "bundle": "bundle-065a2c42a566.zip",
- "bundle_sha256": "065a2c42a56605f7323d6b424b284899329bf5b5306209b64be708337ccc63d4",
- "bundle_files": 87,
+ "bundle": "bundle-fe097251b51c.zip",
+ "bundle_sha256": "fe097251b51ccfab36a1e8a07fd021d241836d356982ee333156ffce028c0e44",
+ "bundle_files": 94,
  "pyodide": "314.0.7",
  "python": "3.14.2",
  "cases": [
+  {
+   "case_id": "Q14-DEMO-STEADY",
+   "kind": "COMPANY",
+   "title": "Meadow Synthetic Consumer Co.",
+   "code": "SYNDEMO3",
+   "note": "经营在改善，但和合成的同行区间相比估值偏高——看“经营好”为什么不等于“值得买”",
+   "has_synthetic_comparison": true,
+   "decision_inputs": {
+    "comparison_basis": [
+     {
+      "metric": "PE",
+      "basis_type": "PEER_SET",
+      "low": 18,
+      "high": 30,
+      "source": "合成演示区间：开发者为演示编写的消费行业同行区间，不是市场数据",
+      "as_of": "2026-10-19",
+      "synthetic": true
+     },
+     {
+      "metric": "EV_EBITDA",
+      "basis_type": "PEER_SET",
+      "low": 10,
+      "high": 16,
+      "source": "合成演示区间：开发者为演示编写的消费行业同行区间，不是市场数据",
+      "as_of": "2026-10-19",
+      "synthetic": true
+     }
+    ]
+   }
+  },
   {
    "case_id": "Q8-ORCHARD",
    "kind": "COMPANY",
    "title": "Orchard Synthetic Industrial Co.",
    "code": "SYNDEMO2",
-   "note": "完整的五专家演示案例"
+   "note": "经营在改善，但没有估值比较依据——投资研究判断只能写“暂无法确定”"
   },
   {
    "case_id": "Q8-LANTERN",
    "kind": "COMPANY",
    "title": "Lantern Synthetic Software Inc.",
    "code": "SYNDEMO1",
-   "note": "第二家合成公司:亏损;价格序列比截止日早 11 天"
+   "note": "亏损、触发硬性财务风险；价格数据比截止日早 11 天，不能用"
   },
   {
    "case_id": "Q8-ORCHARD-MISSING-DATA",
    "kind": "SCENARIO",
-   "title": "场景:资料缺失",
+   "title": "场景：资料缺失",
    "code": "SYNDEMO2",
    "note": "财报缺身份、估值缺币种、公告缺可得时间——看系统怎样拒绝而不是猜"
   },
   {
    "case_id": "Q8-ORCHARD-IDENTITY-CONFLICT",
    "kind": "SCENARIO",
-   "title": "场景:混入别家公司的资料",
+   "title": "场景：混入别家公司的资料",
    "code": "SYNDEMO2",
    "note": "财报和公告混入 Lantern 的资料——看系统怎样阻断"
   }
  ],
  "as_of": {
+  "Q14-DEMO-STEADY": "2026-10-19",
   "Q8-ORCHARD": "2026-10-19",
   "Q8-LANTERN": "2026-10-19",
   "Q8-ORCHARD-MISSING-DATA": "2026-10-19",

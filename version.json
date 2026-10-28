@@ -1,8 +1,8 @@
 {
- "version": "P03.2",
- "built_at": "2026-10-26T05:28:25Z",
- "source_commit": "353fe6075893dd03dd10c07b6177fbac164e2fb0",
+ "version": "P04",
+ "built_at": "2026-10-28T07:30:51Z",
+ "source_commit": "31d90a44a222c7a6fa667b466bd8656376631d50",
  "source_dirty": false,
- "bundle_sha256": "065a2c42a56605f7323d6b424b284899329bf5b5306209b64be708337ccc63d4",
+ "bundle_sha256": "fe097251b51ccfab36a1e8a07fd021d241836d356982ee333156ffce028c0e44",
  "pyodide": "314.0.7"
 }
