@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="股票研究工作台 Mac 测试版：在你自己的 Mac 上用你自己的 Tiingo key 取数，五个规则专家在本机分析。测试版，不是投资建议。">
+<title>Mac 测试版下载 · 股票研究工作台</title>
+<link rel="stylesheet" href="download.css">
+</head>
+<body>
+<header class="mast">
+  <div class="wrap mast-in">
+    <a class="logo" href="../">股票研究工作台</a>
+    <span class="flag">Mac 测试版 · 只供你本人研究使用</span>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="intro">
+    <h1>在你自己的 Mac 上分析真实公司</h1>
+    <p class="lede">输入公司名称或代码，确认是哪一家，软件从 Tiingo（行情）、SEC（财报和公告）、美国财政部（利率）取数，五个规则专家在你的电脑上分析，给出简单版和专业版报告。</p>
+    <p class="warn"><b>这是测试版。</b>不是投资建议，不给买卖信号；五个专家和综合判断还没有经过金融有效性验证。</p>
+  </section>
+
+  <section class="card download" aria-labelledby="dl-title">
+    <h2 id="dl-title">下载</h2>
+    <p><a class="btn" href="https://github.com/DR-16/stock-agent-demo/releases/download/mac-0.20.0-test/StockAgent-0.20.0-test.dmg">下载 StockAgent-0.20.0-test.dmg</a></p>
+    <dl class="facts">
+      <dt>版本</dt><dd>0.20.0-test（2026-11-15 发布）</dd>
+      <dt>大小</dt><dd>30.9 MB</dd>
+      <dt>系统要求</dt><dd>macOS 26 或更新版本，Apple 芯片（M 系列）的 Mac。Intel 芯片的 Mac 和更早的 macOS 目前不能用。</dd>
+      <dt>签名</dt><dd>已用 Apple Developer ID 签名，并通过苹果公证（安装包和软件都带公证凭证）。</dd>
+      <dt>SHA-256</dt><dd><code class="hash">26f9a451ba67fe19f0a21b57d56df84ff253ca01498f3f539b1fa16f64d4d547</code></dd>
+    </dl>
+    <p class="small">下载后可以在“终端”里运行 <code>shasum -a 256 ~/Downloads/StockAgent-0.20.0-test.dmg</code>，核对输出和上面的 SHA-256 是否一致（如果下载到了别的文件夹，换成那个路径）。</p>
+  </section>
+
+  <section class="card">
+    <h2>你需要准备：自己的 Tiingo key</h2>
+    <ul>
+      <li>行情来自 <a href="https://www.tiingo.com/" rel="noreferrer">Tiingo</a>。你需要注册一个自己的 Tiingo 账户（有免费套餐），在账户页面复制 API key。</li>
+      <li>第一次打开软件时粘贴一次。软件先用它取 5 天 SPY 行情检查，通过后才存进这台 Mac 的系统钥匙串；之后打开不用再填。</li>
+      <li>软件不会要你的 Tiingo 密码，也不会替你注册或登录。可以随时在软件里更换 key，或断开并删除它。</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>Tiingo 套餐和条款</h2>
+    <ul>
+      <li>免费 Starter 套餐：每小时 50 次、每天 1000 次请求，每月 500 个不同代码；许可为“仅供内部使用”（Tiingo 价格页）。分析一家公司大约要 5 到 6 次请求。</li>
+      <li>你的使用受 <a href="https://www.tiingo.com/tos/" rel="noreferrer">Tiingo 服务条款</a>约束，不同套餐允许的用法不同，使用前请先阅读条款。</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>安装</h2>
+    <ol>
+      <li>下载上面的 .dmg 文件并打开。</li>
+      <li>把 Stock Agent 拖进“应用程序”文件夹。</li>
+      <li>第一次打开时，macOS 会提示这是从互联网下载的 App，点“打开”。</li>
+    </ol>
+    <p>不需要安装 Python，也不需要运行任何命令。</p>
+  </section>
+
+  <section class="card">
+    <h2>你的数据去哪里</h2>
+    <ul>
+      <li>没有账号系统，软件不会把你的数据发给开发者。行情、财报和利率都由你的 Mac 直接向 Tiingo、SEC 和美国财政部请求；向 SEC 请求时带着软件的联系方式（SEC 要求这样做）。</li>
+      <li>Tiingo key 只存在 macOS 系统钥匙串里，不写进任何文件、日志或报告。</li>
+      <li>分析结果默认只在内存里，关闭软件就清除；只有你自己点“下载报告”或“打印”时才会生成文件。</li>
+      <li>SEC 和美国财政部的公开数据会缓存在 <code>~/Library/Application Support/StockAgent</code>，下次取数更快。这个缓存里能看出你查过哪些公司、什么时候查的；不想留下这些记录，就删掉这个文件夹（软件会重新下载）。</li>
+      <li>软件退出时会删掉网页组件自己留下的文件（缓存、Cookie、窗口状态）；如果软件崩溃或被强制退出，会在下次打开时删掉。</li>
+    </ul>
+  </section>
+
+  <section class="card">
+    <h2>卸载</h2>
+    <ol>
+      <li>在软件首页点“断开并删除 key”，把钥匙串里的 key 删掉。（如果软件已经删了：打开“钥匙串访问”，搜索 <code>StockAgent.Tiingo</code>，删除那一项。）</li>
+      <li>退出软件，把 Stock Agent 从“应用程序”拖到废纸篓。</li>
+      <li>删除 <code>~/Library/Application Support/StockAgent</code> 文件夹（公开数据缓存）。</li>
+      <li>如果还想清得更干净：删除 <code>~/Library/Preferences/io.github.dr16.stockagent.plist</code>（窗口位置等系统偏好）。其余位置软件退出时已经清理。</li>
+    </ol>
+  </section>
+
+  <section class="card muted">
+    <h2>测试版说明</h2>
+    <ul>
+      <li>目前只经过开发者本人的小范围验收，没有自动更新；新版本会发在这个页面上。</li>
+      <li>报告里的结论来自规则专家，可能出错；任何投资决定请自己判断。</li>
+    </ul>
+  </section>
+</main>
+
+<footer class="foot wrap">
+  <p>数据来源：Tiingo（行情）、SEC EDGAR（财报和公告）、美国财政部（利率）。不是投资建议。</p>
+  <p><a href="../">← 返回网页演示（合成数据）</a></p>
+</footer>
+</body>
+</html>
